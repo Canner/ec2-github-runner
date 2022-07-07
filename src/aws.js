@@ -2,36 +2,10 @@ const AWS = require('aws-sdk');
 const core = require('@actions/core');
 const config = require('./config');
 
-// User data scripts are run as the root user
-function buildUserDataScript(githubRegistrationToken, label) {
-  if (config.input.runnerHomeDir) {
-    // If runner home directory is specified, we expect the actions-runner software (and dependencies)
-    // to be pre-installed in the AMI, so we simply cd into that directory and then start the runner
-    return [
-      '#!/bin/bash',
-      `cd "${config.input.runnerHomeDir}"`,
-      'export RUNNER_ALLOW_RUNASROOT=1',
-      `./config.sh --url https://github.com/${config.githubContext.owner}/${config.githubContext.repo} --token ${githubRegistrationToken} --labels ${label}`,
-      './run.sh',
-    ];
-  } else {
-    return [
-      '#!/bin/bash',
-      'mkdir actions-runner && cd actions-runner',
-      'case $(uname -m) in aarch64) ARCH="arm64" ;; amd64|x86_64) ARCH="x64" ;; esac && export RUNNER_ARCH=${ARCH}',
-      'curl -O -L https://github.com/actions/runner/releases/download/v2.286.0/actions-runner-linux-${RUNNER_ARCH}-2.286.0.tar.gz',
-      'tar xzf ./actions-runner-linux-${RUNNER_ARCH}-2.286.0.tar.gz',
-      'export RUNNER_ALLOW_RUNASROOT=1',
-      `./config.sh --url https://github.com/${config.githubContext.owner}/${config.githubContext.repo} --token ${githubRegistrationToken} --labels ${label}`,
-      './run.sh',
-    ];
-  }
-}
-
 async function startEc2Instance(label, githubRegistrationToken) {
   const ec2 = new AWS.EC2();
 
-  const userData = buildUserDataScript(githubRegistrationToken, label);
+  const userData = config.buildUserDataScript(githubRegistrationToken, label);
 
   const subnetId = config.input.subnetId;
   const subnets = subnetId ? subnetId.replace(/\s/g, '').split(',') : [null];
@@ -46,7 +20,7 @@ async function startEc2Instance(label, githubRegistrationToken) {
       SubnetId: subnet,
       SecurityGroupIds: [config.input.securityGroupId],
       IamInstanceProfile: { Name: config.input.iamRoleName },
-      TagSpecifications: config.tagSpecifications,
+      TagSpecifications: config.awsTagSpecifications,
     };
     try {
       const result = await ec2.runInstances(params).promise();
@@ -59,10 +33,6 @@ async function startEc2Instance(label, githubRegistrationToken) {
     }
   }
   core.setFailed(`Failed to launch instance after trying in ${subnets.length} subnets.`);
-}
-
-async function terminateEc2Instance() {
-  await terminateEc2InstanceById(config.input.ec2InstanceId);
 }
 
 async function terminateEc2InstanceById(ec2InstanceId) {
@@ -80,6 +50,10 @@ async function terminateEc2InstanceById(ec2InstanceId) {
     core.error(`AWS EC2 instance ${ec2InstanceId} termination error`);
     throw error;
   }
+}
+
+async function terminateEc2Instance() {
+  await terminateEc2InstanceById(config.input.instanceId);
 }
 
 async function waitForInstanceRunning(ec2InstanceId) {
