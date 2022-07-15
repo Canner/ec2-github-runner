@@ -5,6 +5,10 @@ branding:
   icon: 'box'
   color: 'orange'
 inputs:
+  cloud:
+    description: >-
+      cloud platorm that we want to start/stop instance, available options are `aws`, `azure`
+    requred: true
   mode:
     description: >-
       Specify here which mode you want to use:
@@ -44,10 +48,10 @@ inputs:
       The label is used to remove the runner from GitHub when the runner is not needed anymore.
       This input is required if you use the 'stop' mode.
     required: false
-  ec2-instance-id:
+  instance-id:
     description: >-
-      EC2 Instance Id of the created runner.
-      The id is used to terminate the EC2 instance when the runner is not needed anymore.
+      Instance Id of the created runner.
+      The id is used to terminate the instance when the runner is not needed anymore.
       This input is required if you use the 'stop' mode.
     required: false
   iam-role-name:
@@ -70,6 +74,54 @@ inputs:
     description: Number of attempts. Default is 1
     required: false
     default: 3
+  azure-location:
+    description: >-
+      azure service location
+    requred: false
+  azure-vm-size:
+    description: >-
+      azure vm size
+    requred: false
+  azure-resource-group-name:
+    description: >-
+      azure resource group name
+    requred: false
+  azure-subscription-id:
+    description: >-
+      azure subscritpion id
+    requred: false
+  azure-subnet-id:
+    description: >-
+      azure subnet id
+    requred: false
+  azure-image-id:
+    description: >-
+      azure generialized image id
+    requred: false
+  azure-vm-tags:
+    description: >-
+      Tags to attach to the launched azure instance.
+      This must be a stringified json object of azure tags,
+      for example: '{"Name": "ec2-github-runner", "GitHubRepository": "https://github.com/Canner/ec2-github-runner"}'
+    requred: false
+    default: '{}'
+  azure-vm-disk-size-in-gb:
+    description: >-
+      azure vm os disk size, unit is gb
+    requred: false
+    default: 32
+  azure-tenant-id:
+    description: >-
+      azure tenant id
+    requred: false
+  azure-client-id:
+    description: >-
+      azure cliet id
+    requred: false
+  azure-client-secret:
+    description: >-
+      azure cliet secret
+    requred: false
 outputs:
   label:
     description: >-
