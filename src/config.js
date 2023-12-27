@@ -16,6 +16,7 @@ class Config {
       runnerHomeDir: core.getInput('runner-home-dir'),
       maxAttempts: core.getInput('max_attempts'),
       cloud: core.getInput('cloud'),
+      sshKeyName: core.getInput('ec2-ssh-key-name'),
       // azure settings
       azureLocation: core.getInput('azure-location'),
       azureVMSize: core.getInput('azure-vm-size'),
@@ -73,11 +74,18 @@ class Config {
         if (!this.input.ec2ImageId || !this.input.ec2InstanceType || !this.input.subnetId || !this.input.securityGroupId) {
           throw new Error(`Not all the required inputs are provided for the 'start' mode in aws`);
         }
-      }
-      else if (this.input.cloud === 'azure') {
-        if (!this.input.azureLocation || !this.input.azureSubscriptionId || !this.input.azureVMSize 
-          || !this.input.azureResourceGroup || !this.input.azureSubnetId || !this.input.azureImageId
-          || !this.input.azureTenantId || !this.input.azureClientId || !this.input.azureClientSecret) {
+      } else if (this.input.cloud === 'azure') {
+        if (
+          !this.input.azureLocation ||
+          !this.input.azureSubscriptionId ||
+          !this.input.azureVMSize ||
+          !this.input.azureResourceGroup ||
+          !this.input.azureSubnetId ||
+          !this.input.azureImageId ||
+          !this.input.azureTenantId ||
+          !this.input.azureClientId ||
+          !this.input.azureClientSecret
+        ) {
           throw new Error(`Not all the required inputs are provided for the 'start' mode in azure`);
         }
       }
@@ -86,8 +94,13 @@ class Config {
         throw new Error(`label or instanceId not provided for the 'stop' mode`);
       }
       if (this.input.cloud === 'azure') {
-        if (!this.input.azureResourceGroup || !this.input.azureSubscriptionId 
-          || !this.input.azureTenantId || !this.input.azureClientId || !this.input.azureClientSecret) {
+        if (
+          !this.input.azureResourceGroup ||
+          !this.input.azureSubscriptionId ||
+          !this.input.azureTenantId ||
+          !this.input.azureClientId ||
+          !this.input.azureClientSecret
+        ) {
           throw new Error(`Not all the required inputs are provided for the 'stop' mode in azure`);
         }
       }
